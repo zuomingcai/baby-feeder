@@ -22,6 +22,25 @@ allprojects {
         google()
         mavenCentral()
     }
+    
+    // 统一设置Java版本为17
+    tasks.withType(JavaCompile) {
+        options.release = 17
+    }
+    
+    // 对于Android项目，设置compileOptions
+    subprojects {
+        afterEvaluate { project ->
+            if (project.hasProperty('android')) {
+                android {
+                    compileOptions {
+                        sourceCompatibility JavaVersion.VERSION_17
+                        targetCompatibility JavaVersion.VERSION_17
+                    }
+                }
+            }
+        }
+    }
 }
 
 task clean(type: Delete) {
