@@ -24,8 +24,11 @@ allprojects {
     }
     
     // 统一设置Java版本为17
+    // 移除options.release设置，改用sourceCompatibility和targetCompatibility
+    // 这样可以避免与Android Gradle插件冲突
     tasks.withType(JavaCompile) {
-        options.release = 17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     
     // 对于Android项目，设置compileOptions
