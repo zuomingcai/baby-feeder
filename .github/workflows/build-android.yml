@@ -1,0 +1,93 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: baby-feeder/package-lock.json
+
+    - name: Cache node modules
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('baby-feeder/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: |
+        cd baby-feeder
+        npm ci
+
+    - name: Build web assets
+      run: |
+        cd baby-feeder
+        npm run build
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Cache Gradle Wrapper
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/wrapper
+          ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('baby-feeder/android/gradle/wrapper/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Make Gradle executable
+      run: |
+        cd baby-feeder/android
+        chmod +x ./gradlew
+
+    - name: Sync Capacitor project
+      run: |
+        cd baby-feeder
+        npx cap sync
+
+    - name: Build Android APK
+      run: |
+        cd baby-feeder/android
+        ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: baby-feeder-debug-apk
+        path: baby-feeder/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+
+    - name: Upload mapping files
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mapping-files
+        path: baby-feeder/android/app/build/outputs/mapping/
+        retention-days: 7
