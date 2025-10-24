@@ -64,7 +64,8 @@
 
 1. 安装Android命令行工具
 2. 设置ANDROID_SDK_ROOT环境变量
-3. 运行以下命令：
+3. 安装Java 17 JDK
+4. 运行以下命令：
    ```bash
    # 构建Web资源
    npm run build
