@@ -19,8 +19,8 @@ app.use(createPinia())
 app.use(router)
 app.use(Vant)
 
-if (false) {
 
+if (false) {
     // 设置状态栏样式（仅在Capacitor环境中运行）
     if (typeof StatusBar !== 'undefined') {
         // 设置状态栏字体为深色，背景为浅色
@@ -28,7 +28,8 @@ if (false) {
         // 设置状态栏背景色为浅灰色
         StatusBar.setBackgroundColor({ color: '#F5F5F5' });
     }
-
+}
+if (true) {
     // 获取路由器实例
     const routerInstance: Router = router;
 
