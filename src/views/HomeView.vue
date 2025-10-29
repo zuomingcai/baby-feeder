@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Button, Cell, CellGroup, Icon, Toast, Dialog, showConfirmDialog, SwipeCell, Popup, Calendar, showFailToast, showSuccessToast } from 'vant';
 import type { FeedingRecord } from '../services/dbService';
 import { getFeedingRecordsByDate, deleteFeedingRecord } from '../services/dbService';
@@ -12,6 +12,11 @@ import { formatDate as formatDateTime, formatTime } from '../config/date.config'
 
 // 当前日期
 const currentDate = ref<Date>(new Date());
+
+// 监听 currentDate 变化，将新日期保存到 localStorage
+watch(currentDate, (newDate) => {
+  localStorage.setItem('babyFeeder-currentDate', formatDateTime(newDate));
+});
 // 控制日期选择弹出层显示
 const showDatePicker = ref<boolean>(false);
 // 饮食记录列表
@@ -308,8 +313,17 @@ onMounted(() => {
   const dateParam = route.query.date as string;
   if (dateParam) {
     currentDate.value = new Date(dateParam);
+  } else {
+    // 如果没有日期查询参数，尝试从 localStorage 获取保存的日期
+    const savedDateStr = localStorage.getItem('babyFeeder-currentDate');
+    if (savedDateStr) {
+      const savedDate = new Date(savedDateStr);
+      // 确保日期有效
+      if (!isNaN(savedDate.getTime())) {
+        currentDate.value = savedDate;
+      }
+    }
   }
-
   loadFeedingRecords();
 });
 </script>
@@ -342,6 +356,7 @@ onMounted(() => {
       position="bottom"
       :style="{ height: '80%' }"
       round
+      @popup-close="showDatePicker = false"
     >
       <div style="height: 100%; overflow: hidden">
         <Calendar
@@ -363,7 +378,7 @@ onMounted(() => {
     </Popup>
 
     <!-- 本地元数据显示弹出层 -->
-    <Popup v-model:show="showLocalMeta" position="bottom" :style="{ height: '50%' }">
+    <Popup v-model:show="showLocalMeta" position="bottom" :style="{ height: '50%' }" @popup-close="showLocalMeta = false">
       <div style="padding: 20px">
         <h3 style="text-align: center; margin-top: 0">本地元数据</h3>
         <div v-if="localMeta" style="text-align: left">
@@ -477,11 +492,6 @@ onMounted(() => {
 
 .empty-placeholder p {
   margin: 10px 0 0;
-}
-
-.empty-placeholder .hint {
-  font-size: 14px;
-  color: #ccc;
 }
 
 .swipe-cell {

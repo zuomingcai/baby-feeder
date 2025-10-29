@@ -13,10 +13,18 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- 状态栏背景色 -->
+        <item name="android:statusBarColor">@color/statusBarBackground</item>
+        <!-- 状态栏字体颜色为深色 -->
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <!-- 启动页状态栏背景色 -->
+        <item name="android:statusBarColor">@color/statusBarBackground</item>
+        <!-- 启动页状态栏字体颜色为深色 -->
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

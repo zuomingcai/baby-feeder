@@ -10,6 +10,7 @@ import {
 } from './localMetaService';
 import { importFeedingRecords } from './dbService';
 import { formatDate, formatTime } from '../config/date.config';
+import { Http } from '@capacitor/http';
 
 // 定义元数据接口
 export interface WebDAVMetadata {
@@ -38,23 +39,22 @@ export async function getWebDAVMetadata(config: WebDAVConfig): Promise<WebDAVMet
             `${config.url}/meta.json`;
 
         // 创建请求头
-        const headers = new Headers();
+        const headers: any = {};
         if (config.username && config.password) {
             // 使用Base64编码用户名和密码
             const credentials = btoa(`${config.username}:${config.password}`);
-            headers.append('Authorization', `Basic ${credentials}`);
+            headers['Authorization'] = `Basic ${credentials}`;
         }
 
         // 发送GET请求下载元数据
-        const response = await fetch(metaUrl, {
+        const response = await Http.request({
             method: 'GET',
-            headers: headers,
-            mode: 'cors'
+            url: metaUrl,
+            headers: headers
         });
 
-        if (response.ok) {
-            const metadata = await response.json();
-            return metadata;
+        if (response.status === 200) {
+            return response.data as WebDAVMetadata;
         }
 
         return null;
@@ -76,27 +76,28 @@ export async function uploadMetadataToWebDAV(config: WebDAVConfig, metadata: Web
         `${config.url}/meta.json`;
 
     // 创建请求头
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
+    const headers: any = {};
+    headers['Content-Type'] = 'application/json';
 
     if (config.username && config.password) {
         const credentials = btoa(`${config.username}:${config.password}`);
-        headers.append('Authorization', `Basic ${credentials}`);
+        headers['Authorization'] = `Basic ${credentials}`;
     }
 
     // 发送PUT请求上传元数据文件
-    const response = await fetch(metaUrl, {
+    const response = await Http.request({
         method: 'PUT',
+        url: metaUrl,
         headers: headers,
-        body: blob,
-        mode: 'cors'
+        data: jsonData
     });
 
-    if (!response.ok) {
+    if (response.status !== 200 && response.status !== 201 && response.status !== 204) {
         throw new Error('元数据上传失败');
     }
 
 }
+
 // 从配置文件获取WebDAV配置
 export async function getWebDAVConfig(): Promise<WebDAVConfig | null> {
     try {
@@ -116,22 +117,21 @@ export async function getWebDAVConfig(): Promise<WebDAVConfig | null> {
 export async function checkWebDAVConnection(config: WebDAVConfig): Promise<boolean> {
     try {
         // 创建请求头
-        const headers = new Headers();
+        const headers: any = {};
         if (config.username && config.password) {
             // 使用Base64编码用户名和密码
             const credentials = btoa(`${config.username}:${config.password}`);
-            headers.append('Authorization', `Basic ${credentials}`);
+            headers['Authorization'] = `Basic ${credentials}`;
         }
 
         // 发送PROPFIND请求检查连接
-        const response = await fetch(config.url, {
+        const response = await Http.request({
             method: 'PROPFIND',
-            headers: headers,
-            redirect: 'follow',
-            mode: 'cors'
+            url: config.url,
+            headers: headers
         });
 
-        return response.ok;
+        return response.status === 200 || response.status === 207; // 207是WebDAV多状态响应
     } catch (error) {
         console.error('WebDAV连接检查失败:', error);
         return false;
@@ -157,7 +157,6 @@ export async function uploadDataToWebDAV(config: WebDAVConfig, data: any): Promi
     };
 
     const jsonData = JSON.stringify(dataToUpload, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
 
     // 构建数据文件URL
     const dataUrl = config.url.endsWith('/') ?
@@ -165,24 +164,24 @@ export async function uploadDataToWebDAV(config: WebDAVConfig, data: any): Promi
         `${config.url}/baby_feeding_records.json`;
 
     // 创建请求头
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
+    const headers: any = {};
+    headers['Content-Type'] = 'application/json';
 
     if (config.username && config.password) {
         // 使用Base64编码用户名和密码
         const credentials = btoa(`${config.username}:${config.password}`);
-        headers.append('Authorization', `Basic ${credentials}`);
+        headers['Authorization'] = `Basic ${credentials}`;
     }
 
     // 发送PUT请求上传数据文件
-    const dataResponse = await fetch(dataUrl, {
+    const dataResponse = await Http.request({
         method: 'PUT',
+        url: dataUrl,
         headers: headers,
-        body: blob,
-        mode: 'cors'
+        data: jsonData
     });
 
-    if (!dataResponse.ok) {
+    if (dataResponse.status !== 200 && dataResponse.status !== 201 && dataResponse.status !== 204) {
         throw new Error('数据上传失败');
     }
 
@@ -216,25 +215,25 @@ export async function downloadDataFromWebDAV(config: WebDAVConfig): Promise<void
         `${config.url}/baby_feeding_records.json`;
 
     // 创建请求头
-    const headers = new Headers();
+    const headers: any = {};
     if (config.username && config.password) {
         // 使用Base64编码用户名和密码
         const credentials = btoa(`${config.username}:${config.password}`);
-        headers.append('Authorization', `Basic ${credentials}`);
+        headers['Authorization'] = `Basic ${credentials}`;
     }
 
     // 发送GET请求下载文件
-    const response = await fetch(dataUrl, {
+    const response = await Http.request({
         method: 'GET',
-        headers: headers,
-        mode: 'cors'
+        url: dataUrl,
+        headers: headers
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error('数据下载失败');
     }
 
-    const data = await response.json();
+    const data = response.data;
 
     // 导入数据到indexdb
     if (data.records && Array.isArray(data.records)) {

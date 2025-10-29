@@ -19,7 +19,7 @@ import {
   getFeedingRecordById,
   updateFeedingRecord,
 } from "../services/dbService";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter, useRoute, onBeforeRouteLeave } from "vue-router";
 import { formatDate, formatTime } from "../config/date.config";
 
 const router = useRouter();
@@ -143,9 +143,9 @@ const saveRecord = async () => {
     // 返回主页，并传递当前记录的日期作为参数
     router.push({
       path: "/",
-      query: {
-        date: formData.value.date,
-      },
+      //   query: {
+      //     date: formData.value.date,
+      //   },
     });
   } catch (error) {
     console.error("保存记录失败:", error);
@@ -160,9 +160,6 @@ const cancelOperation = () => {
   // 返回主页，并传递当前记录的日期作为参数
   router.push({
     path: "/",
-    query: {
-      date: formData.value.date,
-    },
   });
 };
 
@@ -301,7 +298,11 @@ const getDefaultFoodTypeIndex = (): number => {
     </div>
 
     <!-- 食物类型选择器 -->
-    <Popup v-model:show="showFoodTypePicker" position="bottom">
+    <Popup
+      v-model:show="showFoodTypePicker"
+      position="bottom"
+      @popup-close="showFoodTypePicker = false"
+    >
       <Picker
         :columns="foodTypeOptions"
         :default-index="getDefaultFoodTypeIndex()"
@@ -312,7 +313,11 @@ const getDefaultFoodTypeIndex = (): number => {
     </Popup>
 
     <!-- 时间选择器 -->
-    <Popup v-model:show="showTimePicker" position="bottom">
+    <Popup
+      v-model:show="showTimePicker"
+      position="bottom"
+      @popup-close="showTimePicker = false"
+    >
       <TimePicker
         type="time"
         :columns-type="['hour', 'minute']"
