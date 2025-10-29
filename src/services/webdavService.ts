@@ -1,6 +1,7 @@
 // WebDAV配置接口
 import { WEBDAV_CONFIG, type WebDAVConfig } from '../config/webdav.config';
 import { v4 as uuidv4 } from 'uuid';
+import { CapacitorHttp } from '@capacitor/core';
 import {
     getLocalMetadata,
     saveLocalMetadata,
@@ -47,11 +48,10 @@ export async function getWebDAVMetadata(config: WebDAVConfig): Promise<WebDAVMet
         }
 
         // 发送GET请求下载元数据
-        const response = await fetch(metaUrl, { method: 'GET', headers: headers
-         });
+        const response = await CapacitorHttp.get({ url: metaUrl, headers: headers });
 
         if (response.status === 200) {
-            const data = await response.json();
+            const data = response.data;
             return data as WebDAVMetadata;
         }
 
@@ -83,8 +83,7 @@ export async function uploadMetadataToWebDAV(config: WebDAVConfig, metadata: Web
     }
 
     // 发送PUT请求上传元数据文件
-    const response = await fetch(metaUrl, { method: 'PUT', headers: headers, body: jsonData
-     });
+    const response = await CapacitorHttp.put({ url: metaUrl, headers: headers, data: JSON.parse(jsonData) });
 
     if (response.status !== 200 && response.status !== 201 && response.status !== 204) {
         throw new Error('元数据上传失败');
@@ -119,8 +118,7 @@ export async function checkWebDAVConnection(config: WebDAVConfig): Promise<boole
         }
 
         // 发送PROPFIND请求检查连接
-        const response = await fetch(config.url, { method: 'PROPFIND', headers: headers
-         });
+        const response = await CapacitorHttp.request({ url: config.url, method: 'PROPFIND', headers: headers });
 
         return response.status === 200 || response.status === 207; // 207是WebDAV多状态响应
     } catch (error) {
@@ -165,8 +163,7 @@ export async function uploadDataToWebDAV(config: WebDAVConfig, data: any): Promi
     }
 
     // 发送PUT请求上传数据文件
-    const dataResponse = await fetch(dataUrl, { method: 'PUT', headers: headers, body: jsonData
-     });
+    const dataResponse = await CapacitorHttp.put({ url: dataUrl, headers: headers, data: JSON.parse(jsonData) });
 
     if (dataResponse.status !== 200 && dataResponse.status !== 201 && dataResponse.status !== 204) {
         throw new Error('数据上传失败');
@@ -210,14 +207,13 @@ export async function downloadDataFromWebDAV(config: WebDAVConfig): Promise<void
     }
 
     // 发送GET请求下载文件
-    const response = await fetch(dataUrl, { method: 'GET', headers: headers
-     });
+    const response = await CapacitorHttp.get({ url: dataUrl, headers: headers });
 
     if (response.status !== 200) {
         throw new Error('数据下载失败');
     }
 
-    const data = await response.json();
+    const data = response.data;
 
     // 导入数据到indexdb
     if (data.records && Array.isArray(data.records)) {
