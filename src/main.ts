@@ -20,15 +20,22 @@ app.use(router)
 app.use(Vant)
 
 
-if (false) {
-    // 设置状态栏样式（仅在Capacitor环境中运行）
-    if (typeof StatusBar !== 'undefined') {
+
+// 设置状态栏样式（仅在Capacitor环境中运行）
+// 注：由于Android原生已设置状态栏样式，此处移除重复设置以避免冲突导致应用崩溃
+import { Capacitor } from '@capacitor/core';
+
+if (typeof StatusBar !== 'undefined') {
+    // 仅在非Android平台设置状态栏样式，避免与原生设置冲突
+    // Android平台已在res/values/styles.xml中通过原生方式设置
+    if (Capacitor.getPlatform() !== 'android') {
         // 设置状态栏字体为深色，背景为浅色
         StatusBar.setStyle({ style: Style.Dark });
         // 设置状态栏背景色为浅灰色
         StatusBar.setBackgroundColor({ color: '#F5F5F5' });
     }
 }
+
 if (true) {
     // 获取路由器实例
     const routerInstance: Router = router;
@@ -53,7 +60,7 @@ if (true) {
         }
 
         // 如果无法返回或在首页，则退出应用
-        if (!canGoBack || routerInstance.currentRoute.value.path === '/') {
+        if (routerInstance.currentRoute.value.path === '/') {
             CapacitorApp.exitApp();
         } else {
             // 否则正常返回

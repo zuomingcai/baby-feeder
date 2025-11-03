@@ -10,6 +10,9 @@ import { getLocalMetadata, initLocalMetadata } from '../services/localMetaServic
 import { useRouter, useRoute } from 'vue-router';
 import { formatDate as formatDateTime, formatTime } from '../config/date.config';
 
+// 引入Capacitor插件
+import { Capacitor } from '@capacitor/core';
+
 // 当前日期
 const currentDate = ref<Date>(new Date());
 
@@ -29,6 +32,15 @@ const showLocalMeta = ref<boolean>(false);
 const calendarRef = ref<any>(null);
 const router = useRouter();
 const route = useRoute();
+
+// 打开开发者工具
+const openDevTools = () => {
+  // 在Android平台上，启用WebView调试后可以通过Chrome DevTools访问
+  // 在iOS平台上，可以通过Safari开发者工具访问
+  // 这里只是添加一个按钮，实际的调试功能需要通过外部工具实现
+  console.log('开发者工具已启用，请使用相应平台的调试工具连接');
+  alert('开发者工具已启用，请使用相应平台的调试工具连接：\n- Android: 使用Chrome DevTools\n- iOS: 使用Safari开发者工具');
+};
 
 // 用于跟踪触摸操作的状态
 const touchState = ref({
@@ -334,6 +346,7 @@ onMounted(() => {
     <div class="app-header">
       <h2 class="app-title">宝宝饮食记录</h2>
       <div class="header-icons">
+        <Button type="default" @click="openDevTools" size="small" icon="setting-o" />
         <Button type="default" @click="uploadData" size="small" icon="upgrade" />
         <Button type="default" @click="downloadData" size="small" icon="down" />
         <Button type="default" @click="viewLocalMeta" size="small" icon="info-o" />
