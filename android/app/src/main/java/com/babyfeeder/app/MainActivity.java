@@ -10,9 +10,8 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 启用WebView调试（仅在调试模式下）
-        if (BuildConfig.DEBUG) {
-            WebView.setWebContentsDebuggingEnabled(true);
-        }
+        // 启用WebView调试
+        // 注意：在生产环境中应禁用此功能
+        WebView.setWebContentsDebuggingEnabled(true);
     }
 }
